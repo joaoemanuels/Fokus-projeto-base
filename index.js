@@ -7,16 +7,32 @@ const timer = document.querySelector(".app__card-timer");
 const Textcontent = document.querySelector(".app__section-banner-container");
 const titulo = Textcontent.querySelector(".app__title");
 const btnStart = document.querySelector(".app__card-primary-button");
+const btnActive = document.querySelector(".app__card-list-item");
 
 let modoAtual = "";
+let tempoRestante = 0;
+let intervaloAtivo = false;
+
 const TEMPO_FOCO = 1500;
 const TEMPO_CURTO = 300;
 const TEMPO_LONGO = 900;
 
-// ----- MUDAR MODO -----
+const alterarContexto = (contexto) => {
+  html.setAttribute("data-contexto", contexto);
+  banner.setAttribute("src", `/imagens/${contexto}.png`);
+};
+
+function ativarBotao(botaoAtivo) {
+  focoBtn.classList.remove("active");
+  curtoBtn.classList.remove("active");
+  longoBtn.classList.remove("active");
+
+  botaoAtivo.classList.add("active");
+}
 
 focoBtn.addEventListener("click", () => {
   alterarContexto("foco");
+  ativarBotao(focoBtn);
 
   titulo.innerHTML = `Otimize sua produtividade,<br><strong class="app__title-strong">mergulhe no que importa.</strong>`;
   modoAtual = "foco";
@@ -24,6 +40,7 @@ focoBtn.addEventListener("click", () => {
 
 curtoBtn.addEventListener("click", () => {
   alterarContexto("descanso-curto");
+  ativarBotao(curtoBtn);
 
   titulo.innerHTML = `Que tal dar uma respirada?<br><strong class="app__title-strong">Faça uma pausa curta.</strong>`;
   modoAtual = "curto";
@@ -31,19 +48,31 @@ curtoBtn.addEventListener("click", () => {
 
 longoBtn.addEventListener("click", () => {
   alterarContexto("descanso-longo");
+  ativarBotao(longoBtn);
 
   titulo.innerHTML = `Hora de voltar à superfície<br><strong class="app__title-strong">Faça uma pausa longa.</strong>`;
   modoAtual = "longo";
 });
 
-// ----- INICIAR TIMER -----
-btnStart.addEventListener("click", () => {
-  if (modoAtual === "foco") timer.innerHTML = TEMPO_FOCO;
-  else if (modoAtual === "curto") timer.innerHTML = TEMPO_CURTO;
-  else if (modoAtual === "longo") timer.innerHTML = TEMPO_LONGO;
-});
+const iniciarTimer = () => {
+  timer.innerHTML = tempoRestante;
 
-const alterarContexto = (contexto) =>{
-  html.setAttribute("data-contexto", contexto);
-  banner.setAttribute("src", `/imagens/${contexto}.png`);
-}
+  if (tempoRestante > 0) {
+    tempoRestante--;
+    setTimeout(iniciarTimer, 1000);
+  }
+};
+
+btnStart.addEventListener("click", () => {
+  if (intervaloAtivo) return;
+
+  if (modoAtual === "foco") {
+    tempoRestante = TEMPO_FOCO;
+  } else if (modoAtual === "curto") {
+    tempoRestante = TEMPO_CURTO;
+  } else if (modoAtual === "longo") {
+    tempoRestante = TEMPO_LONGO;
+  }
+  intervaloAtivo = true;
+  iniciarTimer();
+});
