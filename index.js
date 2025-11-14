@@ -22,13 +22,16 @@ const alterarContexto = (contexto) => {
   banner.setAttribute("src", `/imagens/${contexto}.png`);
 };
 
-function ativarBotao(botaoAtivo) {
+const ativarBotao = (botaoAtivo) => {
   focoBtn.classList.remove("active");
   curtoBtn.classList.remove("active");
   longoBtn.classList.remove("active");
 
   botaoAtivo.classList.add("active");
-}
+
+  tempoRestante = 0;
+  intervaloAtivo = false;
+};
 
 focoBtn.addEventListener("click", () => {
   alterarContexto("foco");
@@ -36,6 +39,7 @@ focoBtn.addEventListener("click", () => {
 
   titulo.innerHTML = `Otimize sua produtividade,<br><strong class="app__title-strong">mergulhe no que importa.</strong>`;
   modoAtual = "foco";
+  timer.innerHTML = "25:00";
 });
 
 curtoBtn.addEventListener("click", () => {
@@ -44,6 +48,8 @@ curtoBtn.addEventListener("click", () => {
 
   titulo.innerHTML = `Que tal dar uma respirada?<br><strong class="app__title-strong">Faça uma pausa curta.</strong>`;
   modoAtual = "curto";
+  timer.innerHTML = "05:00";
+
 });
 
 longoBtn.addEventListener("click", () => {
@@ -52,10 +58,14 @@ longoBtn.addEventListener("click", () => {
 
   titulo.innerHTML = `Hora de voltar à superfície<br><strong class="app__title-strong">Faça uma pausa longa.</strong>`;
   modoAtual = "longo";
+  timer.innerHTML = "15:00";
+
 });
 
+
+
 const iniciarTimer = () => {
-  timer.innerHTML = tempoRestante;
+  timer.innerHTML = formatarTempo(tempoRestante);
 
   if (tempoRestante > 0) {
     tempoRestante--;
@@ -63,16 +73,21 @@ const iniciarTimer = () => {
   }
 };
 
+const formatarTempo = (segundos) => {
+  const min = Math.floor(segundos / 60);
+  const sec = segundos % 60;
+
+  return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+};
+
 btnStart.addEventListener("click", () => {
   if (intervaloAtivo) return;
 
-  if (modoAtual === "foco") {
-    tempoRestante = TEMPO_FOCO;
-  } else if (modoAtual === "curto") {
-    tempoRestante = TEMPO_CURTO;
-  } else if (modoAtual === "longo") {
-    tempoRestante = TEMPO_LONGO;
-  }
+  if (modoAtual === "foco") tempoRestante = TEMPO_FOCO;
+  else if (modoAtual === "curto") tempoRestante = TEMPO_CURTO;
+  else if (modoAtual === "longo") tempoRestante = TEMPO_LONGO;
+
   intervaloAtivo = true;
+
   iniciarTimer();
 });
