@@ -6,12 +6,15 @@ const banner = document.querySelector(".app__image");
 const timer = document.querySelector(".app__card-timer");
 const Textcontent = document.querySelector(".app__section-banner-container");
 const titulo = Textcontent.querySelector(".app__title");
-const btnStart = document.querySelector(".app__card-primary-button");
+const btnStart = document.querySelector("#start-pause");
 const btnActive = document.querySelector(".app__card-list-item");
+const musicaFocoInput = document.querySelector("#alternar-musica");
+const musica = new Audio("/sons/luna-rise-part-one.mp3");
 
 let modoAtual = "";
 let tempoRestante = 0;
 let intervaloAtivo = false;
+let intervalo;
 
 const TEMPO_FOCO = 1500;
 const TEMPO_CURTO = 300;
@@ -49,7 +52,6 @@ curtoBtn.addEventListener("click", () => {
   titulo.innerHTML = `Que tal dar uma respirada?<br><strong class="app__title-strong">Faça uma pausa curta.</strong>`;
   modoAtual = "curto";
   timer.innerHTML = "05:00";
-
 });
 
 longoBtn.addEventListener("click", () => {
@@ -59,18 +61,29 @@ longoBtn.addEventListener("click", () => {
   titulo.innerHTML = `Hora de voltar à superfície<br><strong class="app__title-strong">Faça uma pausa longa.</strong>`;
   modoAtual = "longo";
   timer.innerHTML = "15:00";
-
 });
 
-
+const pararTimer = () => {
+  clearInterval(intervalo);
+  intervalo = null;
+  intervaloAtivo = false;
+}
 
 const iniciarTimer = () => {
-  timer.innerHTML = formatarTempo(tempoRestante);
+  if (intervalo) return;
 
-  if (tempoRestante > 0) {
-    tempoRestante--;
-    setTimeout(iniciarTimer, 1000);
-  }
+  intervaloAtivo = true;
+
+  intervalo = setInterval(() => {
+    timer.innerHTML = formatarTempo(tempoRestante);
+
+    if (tempoRestante > 0) {
+      tempoRestante--;
+      btnStart.innerHTML = "Pause";
+    } else {
+      pararTimer();
+    }
+  }, 1000);
 };
 
 const formatarTempo = (segundos) => {
@@ -81,13 +94,26 @@ const formatarTempo = (segundos) => {
 };
 
 btnStart.addEventListener("click", () => {
-  if (intervaloAtivo) return;
+  if (intervaloAtivo) {
+    btnStart.innerHTML = "Continuar";
 
-  if (modoAtual === "foco") tempoRestante = TEMPO_FOCO;
-  else if (modoAtual === "curto") tempoRestante = TEMPO_CURTO;
-  else if (modoAtual === "longo") tempoRestante = TEMPO_LONGO;
+    pararTimer();
+    return;
+  }
 
-  intervaloAtivo = true;
+  if (tempoRestante === 0) {
+    if (modoAtual === "foco") tempoRestante = TEMPO_FOCO;
+    else if (modoAtual === "curto") tempoRestante = TEMPO_CURTO;
+    else if (modoAtual === "longo") tempoRestante = TEMPO_LONGO;
+  }
 
   iniciarTimer();
+});
+
+musicaFocoInput.addEventListener("change", () => {
+  if (musica.paused) {
+    musica.play();
+  } else {
+    musica.pause();
+  }
 });
