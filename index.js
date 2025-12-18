@@ -1,114 +1,27 @@
 const html = document.querySelector("html");
-const focoBtn = document.querySelector(".app__card-button--foco");
-const curtoBtn = document.querySelector(".app__card-button--curto");
-const longoBtn = document.querySelector(".app__card-button--longo");
+const focoBt = document.querySelector(".app__card-button--foco");
+const curtoBt = document.querySelector(".app__card-button--curto");
+const longoBt = document.querySelector(".app__card-button--longo");
 const banner = document.querySelector(".app__image");
-const timer = document.querySelector(".app__card-timer");
-const Textcontent = document.querySelector(".app__section-banner-container");
-const titulo = Textcontent.querySelector(".app__title");
-const btnStart = document.querySelector("#start-pause");
-const btnActive = document.querySelector(".app__card-list-item");
+const titulo = document.querySelector(".app__title");
+const botoes = document.querySelectorAll(".app__card-button");
+const startPauseBt = document.querySelector("#start-pause");
 const musicaFocoInput = document.querySelector("#alternar-musica");
+const iniciarOuPausarBt = document.querySelector("#start-pause span");
+const iniciarOuPausarBtIcone = document.querySelector(
+  ".app__card-primary-butto-icon"
+);
+const tempoNaTela = document.querySelector("#timer");
+
 const musica = new Audio("/sons/luna-rise-part-one.mp3");
+const audioPlay = new Audio("/sons/play.wav");
+const audioPausa = new Audio("/sons/pause.mp3");
+const audioTempoFinalizado = new Audio("./sons/beep.mp3");
 
-let modoAtual = "";
-let tempoRestante = 0;
-let intervaloAtivo = false;
-let intervalo;
+let tempoDecorridoEmSegundos = 30;
+let intervaloId = null;
 
-const TEMPO_FOCO = 1500;
-const TEMPO_CURTO = 300;
-const TEMPO_LONGO = 900;
-
-const alterarContexto = (contexto) => {
-  html.setAttribute("data-contexto", contexto);
-  banner.setAttribute("src", `/imagens/${contexto}.png`);
-};
-
-const ativarBotao = (botaoAtivo) => {
-  focoBtn.classList.remove("active");
-  curtoBtn.classList.remove("active");
-  longoBtn.classList.remove("active");
-
-  botaoAtivo.classList.add("active");
-
-  tempoRestante = 0;
-  intervaloAtivo = false;
-};
-
-focoBtn.addEventListener("click", () => {
-  alterarContexto("foco");
-  ativarBotao(focoBtn);
-
-  titulo.innerHTML = `Otimize sua produtividade,<br><strong class="app__title-strong">mergulhe no que importa.</strong>`;
-  modoAtual = "foco";
-  timer.innerHTML = "25:00";
-});
-
-curtoBtn.addEventListener("click", () => {
-  alterarContexto("descanso-curto");
-  ativarBotao(curtoBtn);
-
-  titulo.innerHTML = `Que tal dar uma respirada?<br><strong class="app__title-strong">Faça uma pausa curta.</strong>`;
-  modoAtual = "curto";
-  timer.innerHTML = "05:00";
-});
-
-longoBtn.addEventListener("click", () => {
-  alterarContexto("descanso-longo");
-  ativarBotao(longoBtn);
-
-  titulo.innerHTML = `Hora de voltar à superfície<br><strong class="app__title-strong">Faça uma pausa longa.</strong>`;
-  modoAtual = "longo";
-  timer.innerHTML = "15:00";
-});
-
-const pararTimer = () => {
-  clearInterval(intervalo);
-  intervalo = null;
-  intervaloAtivo = false;
-}
-
-const iniciarTimer = () => {
-  if (intervalo) return;
-
-  intervaloAtivo = true;
-
-  intervalo = setInterval(() => {
-    timer.innerHTML = formatarTempo(tempoRestante);
-
-    if (tempoRestante > 0) {
-      tempoRestante--;
-      btnStart.innerHTML = "Pause";
-    } else {
-      pararTimer();
-    }
-  }, 1000);
-};
-
-const formatarTempo = (segundos) => {
-  const min = Math.floor(segundos / 60);
-  const sec = segundos % 60;
-
-  return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-};
-
-btnStart.addEventListener("click", () => {
-  if (intervaloAtivo) {
-    btnStart.innerHTML = "Continuar";
-
-    pararTimer();
-    return;
-  }
-
-  if (tempoRestante === 0) {
-    if (modoAtual === "foco") tempoRestante = TEMPO_FOCO;
-    else if (modoAtual === "curto") tempoRestante = TEMPO_CURTO;
-    else if (modoAtual === "longo") tempoRestante = TEMPO_LONGO;
-  }
-
-  iniciarTimer();
-});
+musica.loop = true;
 
 musicaFocoInput.addEventListener("change", () => {
   if (musica.paused) {
@@ -117,3 +30,97 @@ musicaFocoInput.addEventListener("change", () => {
     musica.pause();
   }
 });
+
+focoBt.addEventListener("click", () => {
+  tempoDecorridoEmSegundos = 30;
+  alterarContexto("foco");
+  focoBt.classList.add("active");
+});
+
+curtoBt.addEventListener("click", () => {
+  tempoDecorridoEmSegundos = 5;
+  alterarContexto("descanso-curto");
+  curtoBt.classList.add("active");
+});
+
+longoBt.addEventListener("click", () => {
+  tempoDecorridoEmSegundos = 15;
+  alterarContexto("descanso-longo");
+  longoBt.classList.add("active");
+});
+
+function alterarContexto(contexto) {
+  mostrarTempo();
+  botoes.forEach(function (contexto) {
+    contexto.classList.remove("active");
+  });
+  html.setAttribute("data-contexto", contexto);
+  banner.setAttribute("src", `/imagens/${contexto}.png`);
+  switch (contexto) {
+    case "foco":
+      titulo.innerHTML = `
+            Otimize sua produtividade,<br>
+                <strong class="app__title-strong">mergulhe no que importa.</strong>
+            `;
+      break;
+    case "descanso-curto":
+      titulo.innerHTML = `
+            Que tal dar uma respirada? <strong class="app__title-strong">Faça uma pausa curta!</strong>
+            `;
+      break;
+    case "descanso-longo":
+      titulo.innerHTML = `
+            Hora de voltar à superfície.<strong class="app__title-strong"> Faça uma pausa longa.</strong>
+            `;
+    default:
+      break;
+  }
+}
+
+const contagemRegressiva = () => {
+  if (tempoDecorridoEmSegundos <= 0) {
+    audioTempoFinalizado.play();
+    alert("Tempo finalizado!");
+    const focoAtivo = html.getAttribute("data-contexto") == "foco";
+    if (focoAtivo) {
+      const evento = new CustomEvent("focoFinalizado");
+      document.dispatchEvent(evento)
+    }
+    zerar();
+    return;
+  }
+  tempoDecorridoEmSegundos -= 1;
+  mostrarTempo();
+};
+
+startPauseBt.addEventListener("click", iniciarOuPausar);
+
+function iniciarOuPausar() {
+  if (intervaloId) {
+    audioPausa.play();
+    zerar();
+    return;
+  }
+  audioPlay.play();
+  intervaloId = setInterval(contagemRegressiva, 1000);
+  iniciarOuPausarBt.textContent = "Pausar";
+  iniciarOuPausarBtIcone.setAttribute("src", `/imagens/pause.png`);
+}
+
+function zerar() {
+  clearInterval(intervaloId);
+  iniciarOuPausarBt.textContent = "Começar";
+  iniciarOuPausarBtIcone.setAttribute("src", `/imagens/play_arrow.png`);
+  intervaloId = null;
+}
+
+function mostrarTempo() {
+  const tempo = new Date(tempoDecorridoEmSegundos * 1000);
+  const tempoFormatado = tempo.toLocaleTimeString("pt-Br", {
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  tempoNaTela.innerHTML = `${tempoFormatado}`;
+}
+
+mostrarTempo();
